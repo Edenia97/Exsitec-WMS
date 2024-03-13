@@ -1,0 +1,72 @@
+@page "/warehouses"
+@inject DataStoreService dataStoreService
+
+<h3>Warehouses</h3>
+
+<EditForm Model="@newWarehouse" OnValidSubmit="AddWarehouse">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="number">Number:</label>
+        <InputNumber id="number" class="form-control" @bind-Value="newWarehouse.Number" />
+    </div>
+    <div class="form-group">
+        <label for="city">City:</label>
+        <InputText id="city" class="form-control" @bind-Value="newWarehouse.City" />
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Add a Warehouse</button>
+
+</EditForm>
+
+@if (warehouses != null && warehouses.Count > 0)
+{
+    <table class="table">
+    <thead>
+        <tr>
+            <th>Number</th>
+            <th>City</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var warehouse in warehouses)
+            {
+                <tr>
+                    <td>@warehouse.Number</td>
+                    <td>@warehouse.City</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteWarehouse(warehouse.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>There are now Warehouses currently</p>
+}
+
+@code {
+    private Warehouse newWarehouse = new Warehouse();
+
+    private List<Warehouse> warehouses = new List<Warehouse>();
+
+    protected override void OnInitialized()
+    {
+        warehouses = dataStoreService.GetWarehouses();
+    }
+
+    private void AddWarehouse()
+    {
+        dataStoreService.AddWarehouse(newWarehouse);
+        newWarehouse = new Warehouse(); // Rensa formuläret
+    }
+
+    private void DeleteWarehouse(int id)
+    {
+        dataStoreService.DeleteWarehouse(id);
+        warehouses = dataStoreService.GetWarehouses();
+    }
+}

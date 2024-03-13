@@ -1,0 +1,43 @@
+@page "/balances"
+@inject DataStoreService dataStoreService
+
+<h3>Inventory Balance</h3>
+
+@if (balances != null && balances.Count > 0)
+{
+    <table class="table">
+    <thead>
+        <tr>
+            <th>Produkt name</th>
+            <th>Warehouse name</th>
+            <th>Inventory Balance</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var balance in balances)
+            {
+                <tr>
+                    <td>@dataStoreService.GetProductById(balance.ProductId).ProductName</td>
+                    <td>@dataStoreService.GetWarehouseById(balance.WarehouseId).City </td>
+                    <td>@balance.Balance</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No inventory balance available</p>
+}
+
+
+@code {
+    private List<InventoryBalance> balances = new List<InventoryBalance>();
+
+    protected override void OnInitialized()
+    {
+        dataStoreService.CalculateInventoryBalance();
+        balances = dataStoreService.GetBalances();
+    }
+
+}

@@ -1,0 +1,105 @@
+@page "/transactions"
+@inject DataStoreService dataStoreService
+
+<h3>Transactions</h3>
+
+@if (!string.IsNullOrEmpty(dataStoreService.ErrorMessage))
+{
+    <div class="alert alert-danger mt-3">@dataStoreService.ErrorMessage</div>
+}
+<EditForm Model="@newTransaction" OnValidSubmit="AddWarehouseTransaction">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    
+    <div class="form-group">
+        <label for="productId">Product:</label>
+        <InputSelect id="productId" class="form-control" @bind-Value="newTransaction.ProductId">
+            @foreach (var product in products)
+            {
+                <option value="@product.Id">@product.ProductName</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="form-group">
+        <label for="warehouseId">Warehouse:</label>
+        <InputSelect id="warehouseId" class="form-control" @bind-Value="newTransaction.WarehouseId">
+            @foreach (var warehouse in warehouses)
+            {
+                <option value="@warehouse.Id">@warehouse.City</option>
+            }
+        </InputSelect>
+    </div>
+    <div class="form-group">
+        <label for="amount">Amount:</label>
+        <InputNumber id="amount" class="form-control" @bind-Value="newTransaction.Amount" />
+    </div>
+    <div class="form-group">
+        <label for="date"> Transaction Date:</label>
+        <InputDate id="date" class="form-control" @bind-Value="newTransaction.Date" />
+    </div>
+    <div class="form-group">
+        <label for="type">Transaktion type:</label>
+        <InputSelect id="type" class="form-control" @bind-Value="newTransaction.Type">
+            <option value="Ingoing">Ingoing</option>
+            <option value="Outgoing">Outgoing</option>
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Make Transaction</button>
+    
+</EditForm>
+
+<h4>Latest Transactions</h4>
+
+@if (transactions != null && transactions.Count > 0)
+{
+    <table class="table mt-3">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Warehouse</th>
+            <th>Amount</th>
+            <th>Transaction Date</th>
+            <th>Type</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var trans in transactions)
+            {
+                <tr>
+                    <td>@dataStoreService.GetProductById(trans.ProductId).ProductName </td>
+                    <td>@dataStoreService.GetWarehouseById(trans.WarehouseId).City</td>
+                    <td>@trans.Amount</td>
+                    <td>@trans.Date.ToShortDateString()</td>
+                    <td>@trans.Type</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No transaction list available.</p>
+}
+
+@code {
+    private WarehouseTransaction newTransaction = new WarehouseTransaction { Date = DateTime.Now };
+    private List<WarehouseTransaction> transactions = new List<WarehouseTransaction>();
+    private List<Warehouse> warehouses = new List<Warehouse>();
+    private List<Product> products =  new List<Product>();
+
+    protected override void OnInitialized()
+    {
+        transactions = dataStoreService.GetWarehouseTransactions();
+        warehouses = dataStoreService.GetWarehouses(); // Hämta lagerhus från DataStoreService
+        products = dataStoreService.GetProducts();
+        dataStoreService.ErrorMessage = null;
+    }
+
+    private void AddWarehouseTransaction()
+    {
+        dataStoreService.AddWarehouseTransaction(newTransaction);
+        newTransaction = new WarehouseTransaction { Date = DateTime.Now }; // Rensa formuläret
+        transactions = dataStoreService.GetWarehouseTransactions(); // Uppdatera listan
+    }
+}
